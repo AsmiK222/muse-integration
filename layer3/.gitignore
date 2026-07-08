@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.txt
+*.json
+*.npz
+icbhi_reference_report*
+wheeze_calibration_report*
+integration_test_log.txt
