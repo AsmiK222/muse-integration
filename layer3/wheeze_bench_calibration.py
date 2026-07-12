@@ -1,11 +1,11 @@
-# wheeze_bench_calibration.py
+﻿# wheeze_bench_calibration.py
 #
 # Per Arvind Decision 2: "Run a brief bench calibration before study start
 # to get a TAAL-specific [wheeze] threshold."
 #
 # This script takes a folder of labelled recordings (known wheeze present /
 # known wheeze absent), runs them through Layer 1, and computes the
-# Taal-specific operating points: screening / study / demo — exactly
+# Taal-specific operating points: screening / study / demo â€” exactly
 # mirroring the structure already validated for crackle in crackle_v1.meta.json.
 #
 # Usage:
@@ -13,7 +13,7 @@
 #        bench_data/wheeze_present/*.wav   (confirmed wheeze on auscultation)
 #        bench_data/wheeze_absent/*.wav    (confirmed clear breath sounds)
 #      Minimum 15-20 recordings per class for a usable ROC curve.
-#      More is better — this mirrors how crackle_v1's taal_thresholds were derived.
+#      More is better â€” this mirrors how crackle_v1's taal_thresholds were derived.
 #
 #   2. Run:
 #        python wheeze_bench_calibration.py --bench-dir bench_data
@@ -40,12 +40,12 @@ try:
     LAYER1_AVAILABLE = True
 except Exception as e:
     LAYER1_AVAILABLE = False
-    print(f"⚠ Layer 1 not available: {e}")
+    print(f"âš  Layer 1 not available: {e}")
 
 from pipeline_e2e import load_audio_full
 
 
-# ── Step 1: collect raw scores from labelled recordings ──────────────────────
+# â”€â”€ Step 1: collect raw scores from labelled recordings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def collect_scores(bench_dir: str, device: str = "cpu") -> dict:
     """
@@ -63,7 +63,7 @@ def collect_scores(bench_dir: str, device: str = "cpu") -> dict:
 
     for label, d in [("present", present_dir), ("absent", absent_dir)]:
         if not os.path.isdir(d):
-            print(f"  ⚠ Folder not found: {d}")
+            print(f"  âš  Folder not found: {d}")
             continue
         wav_files = sorted(f for f in os.listdir(d) if f.lower().endswith(".wav"))
         print(f"\n  {label.upper()} ({len(wav_files)} files):")
@@ -87,20 +87,20 @@ def collect_scores(bench_dir: str, device: str = "cpu") -> dict:
     }
 
 
-# ── Step 2: compute ROC-style operating points ────────────────────────────────
+# â”€â”€ Step 2: compute ROC-style operating points â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def compute_operating_points(scores_present: list, scores_absent: list) -> dict:
     """
     Computes three operating points mirroring crackle_v1.meta.json structure:
-        screening — maximise sensitivity (catch everything, accept false positives)
-        study     — balanced sensitivity/specificity (recommended default)
-        demo      — maximise specificity (fewer false positives)
+        screening â€” maximise sensitivity (catch everything, accept false positives)
+        study     â€” balanced sensitivity/specificity (recommended default)
+        demo      â€” maximise specificity (fewer false positives)
 
     Method: scan candidate thresholds, compute sensitivity and specificity
     at each, select the threshold matching each target operating point.
     """
     if not scores_present or not scores_absent:
-        return {"error": "Insufficient data — need both present and absent recordings"}
+        return {"error": "Insufficient data â€” need both present and absent recordings"}
 
     all_scores = sorted(set(scores_present + scores_absent))
     candidates = np.linspace(min(all_scores), max(all_scores), 200)
@@ -151,7 +151,7 @@ def compute_operating_points(scores_present: list, scores_absent: list) -> dict:
     }
 
 
-# ── Step 3: generate report + meta.json patch ─────────────────────────────────
+# â”€â”€ Step 3: generate report + meta.json patch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def generate_report(bench_results: dict, operating_points: dict, output_path: str):
     """Writes a full calibration report for Arvind's review."""
@@ -161,7 +161,7 @@ def generate_report(bench_results: dict, operating_points: dict, output_path: st
     lines = [
         "=" * 65,
         "WHEEZE BENCH CALIBRATION REPORT",
-        "Per Arvind Decision 2 — Taal-specific wheeze threshold",
+        "Per Arvind Decision 2 â€” Taal-specific wheeze threshold",
         "=" * 65,
         "",
         f"Sample sizes:",
@@ -171,7 +171,7 @@ def generate_report(bench_results: dict, operating_points: dict, output_path: st
     ]
 
     if n_present < 15 or n_absent < 15:
-        lines.append("⚠ WARNING: sample size below recommended minimum (n=15-20 per class).")
+        lines.append("âš  WARNING: sample size below recommended minimum (n=15-20 per class).")
         lines.append("  Results below should be treated as preliminary, not final calibration.")
         lines.append("")
 
@@ -195,9 +195,9 @@ def generate_report(bench_results: dict, operating_points: dict, output_path: st
             f"    sensitivity={operating_points['demo_sensitivity']}  "
             f"specificity={operating_points['demo_specificity']}",
             "",
-            "─" * 65,
+            "â”€" * 65,
             "Paste into wheeze_v1.meta.json:",
-            "─" * 65,
+            "â”€" * 65,
             "",
             '  "taal_thresholds": {',
             f'    "screening": {operating_points["screening"]},',
@@ -205,9 +205,9 @@ def generate_report(bench_results: dict, operating_points: dict, output_path: st
             f'    "demo": {operating_points["demo"]}',
             "  },",
             "",
-            "─" * 65,
+            "â”€" * 65,
             "Raw scores (Arvind decision 2: always store raw scores)",
-            "─" * 65,
+            "â”€" * 65,
         ])
         lines.append("\nwheeze_present:")
         for f, s in zip(bench_results["files_present"], bench_results["scores_present"]):
@@ -217,19 +217,19 @@ def generate_report(bench_results: dict, operating_points: dict, output_path: st
             lines.append(f"  {f:<40} {s:.4f}")
 
     report = "\n".join(lines)
-    with open(output_path, "w") as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(report)
     print(f"\n{report}")
     print(f"\n  Report saved to: {output_path}")
 
 
-# ── Step 4: update consistency_config.py with calibrated status ──────────────
+# â”€â”€ Step 4: update consistency_config.py with calibrated status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def update_calibration_status(new_threshold: float, output_path: str = None):
     """
     Prints the exact line change needed in consistency_config.py to mark
     the wheeze threshold as calibrated rather than provisional.
-    Does NOT auto-edit the file — Arvind should review and approve first.
+    Does NOT auto-edit the file â€” Arvind should review and approve first.
     """
     print("\n" + "=" * 65)
     print("To mark wheeze threshold as CALIBRATED (after Arvind approval):")
@@ -244,12 +244,12 @@ def update_calibration_status(new_threshold: float, output_path: str = None):
     "status": "calibrated",
     "source": "Taal bench calibration, n={{n_present}}+{{n_absent}}, AUROC={{auroc}}"
 
-  Do NOT make this change without Arvind's explicit sign-off — this
+  Do NOT make this change without Arvind's explicit sign-off â€” this
   threshold drives the endobronchial suppression and obstructive pathways.
     """)
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# â”€â”€ Main â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def main():
     parser = argparse.ArgumentParser(description="Wheeze bench calibration (Arvind decision 2)")
@@ -261,12 +261,12 @@ def main():
     args = parser.parse_args()
 
     if not LAYER1_AVAILABLE:
-        print("✗ Layer 1 not available — cannot run bench calibration.")
+        print("âœ— Layer 1 not available â€” cannot run bench calibration.")
         print("  Ensure layer1 package and checkpoints are accessible.")
         return
 
     print("=" * 65)
-    print("Wheeze Bench Calibration — Arvind Decision 2")
+    print("Wheeze Bench Calibration â€” Arvind Decision 2")
     print("=" * 65)
     print(f"\nScanning: {args.bench_dir}")
 
@@ -276,7 +276,7 @@ def main():
     n_absent  = len(bench_results["scores_absent"])
 
     if n_present == 0 or n_absent == 0:
-        print(f"\n✗ Insufficient data: present={n_present}, absent={n_absent}")
+        print(f"\nâœ— Insufficient data: present={n_present}, absent={n_absent}")
         print(f"  Both folders need at least one recording each.")
         print(f"  Expected structure:")
         print(f"    {args.bench_dir}/wheeze_present/*.wav")
@@ -305,3 +305,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
